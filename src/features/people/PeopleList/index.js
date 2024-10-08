@@ -1,15 +1,10 @@
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
 import { StyledMain as Main } from "../../../common/Main/styled";
 import { Section, SectionTitle } from "../../../common/Section";
 import { Pagination } from "../../../common/Pagination";
 import { PeopleTile } from "../../../common/Tile";
 import { toPeopleDetails } from "../../../core/routes";
 import { List, ListItem, StyledLink } from "./styled";
-import {
-	selectPeopleList,
-	selectPeopleListStatus,
-} from "./peopleListSlice";
 import { Loading } from "../../../common/Loading";
 import { Error } from "../../../common/Error";
 import pageParamName from "../../../paginationParam";
@@ -18,6 +13,8 @@ import { useHistory, useLocation } from "react-router-dom/cjs/react-router-dom";
 import { SearchPage } from "../../search";
 import queryParamName from "../../../queryParamName";
 import peoplePathName from "../../../peoplePathName";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPeopleList } from "./fetchPeopleList";
 
 export const PeopleList = () => {
 	const location = useLocation();
@@ -25,16 +22,7 @@ export const PeopleList = () => {
 	const searchParams = new URLSearchParams(location.search);
 	const query = searchParams.get(queryParamName);
 
-	const people = useSelector(selectPeopleList);
-	const status = useSelector(selectPeopleListStatus);
-
-	const updatePageFromURL = useUpdatePageFromURL()
-
 	const pageParam = searchParams.get(pageParamName);
-	const URLparams = {
-		key: query ? "search" : peoplePathName,
-		value: pageParam,
-	};
 
 	useEffect(() => {
 
@@ -43,38 +31,34 @@ export const PeopleList = () => {
 			history.replace(`${location.pathname}?${searchParams.toString()}`);
 		}
 
-		updatePageFromURL(URLparams);
-
 	}, [location]);
 
-	if (query) {
-		return < SearchPage/>
-	};
+	const { isPending, isError, data } = useQuery({
+		queryKey: ["people", {page: pageParam}],
+		queryFn: fetchPeopleList,
+	});
 
-	switch (status) {
-		case "loading":
-			return <Loading />;
-		case "error":
-			return <Error />;
-		default:
-			return (
-				<Main>
-					<Section>
-						<SectionTitle>Popular people</SectionTitle>
-						<List>
-							{people.map(({ id, profile_path, name }) => (
-								<ListItem key={id}>
-									<StyledLink to={toPeopleDetails({ id: id })}>
-										<PeopleTile
-											profilePath={profile_path}
-											name={name} />
-									</StyledLink>
-								</ListItem>
-							))}
-						</List>
-					</Section>
-					<Pagination />
-				</Main>
-			);
-	}
+	if (query) { return < SearchPage /> };
+	if (isPending) return <Loading />;
+	if (isError) return <Error />
+
+	return (
+		<Main>
+			<Section>
+				<SectionTitle>Popular people</SectionTitle>
+				<List>
+					{data.map(({ id, profile_path, name }) => (
+						<ListItem key={id}>
+							<StyledLink to={toPeopleDetails({ id: id })}>
+								<PeopleTile
+									profilePath={profile_path}
+									name={name} />
+							</StyledLink>
+						</ListItem>
+					))}
+				</List>
+			</Section>
+			<Pagination />
+		</Main>
+	);
 };

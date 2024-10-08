@@ -8,6 +8,7 @@ import { GlobalStyle } from "./core/GlobalStyle";
 import { Provider } from "react-redux";
 import store from "./core/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ root.render(
 	<QueryClientProvider client={queryClient}>
 		<Provider store={store}>
 			<ThemeProvider theme={theme}>
+				<ReactQueryDevtools />
 				<GlobalStyle />
 				<App />
 			</ThemeProvider>
