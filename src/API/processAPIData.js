@@ -31,10 +31,10 @@ const getShortCountryName = (countries) =>
 const getGenreName = (genres) => genres.map(({ name }) => name);
 
 export const processMovieListData = (movieListData, genreList) => {
-	const genres = genreList.genres;
-	const movieList = movieListData.results;
+	const genres = genreList?.genres;
+	const movieList = movieListData?.results;
 
-	return movieList.map((movie) => ({
+	return movieList?.map((movie) => ({
 		id: movie.id,
 		title: movie.title,
 		date: changeDateFormat(movie.release_date),
