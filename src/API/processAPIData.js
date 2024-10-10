@@ -1,3 +1,4 @@
+import { mockComponent } from "react-dom/test-utils";
 import moviesPathName from "../moviesPathName";
 import peoplePathName from "../peoplePathName";
 import { backdropURL, posterURL } from "./APIdata";
@@ -46,20 +47,23 @@ export const processMovieListData = (movieListData, genreList) => {
 };
 
 export const processMovieDetailsData = (movieDetails) => {
-	return {
-		id: movieDetails.id,
-		title: movieDetails.title,
-		releaseDate: movieDetails.release_date,
-		releaseYear: changeDateFormat(movieDetails.release_date),
-		rating: changeVoteFormat(movieDetails.vote_average),
-		voteCount: movieDetails.vote_count,
-		description: movieDetails.overview,
-		production: getCountryName(movieDetails.production_countries),
-		productionShort: getShortCountryName(movieDetails.production_countries),
-		genres: getGenreName(movieDetails.genres),
-		backdrop: movieDetails.backdrop_path ? `${backdropURL}${movieDetails.backdrop_path}` : null,
-		poster: movieDetails.poster_path ? `${posterURL}${movieDetails.poster_path}` : null,
-	};
+	console.log(movieDetails)
+
+	if (movieDetails)
+		return {
+			id: movieDetails.id,
+			title: movieDetails.title,
+			releaseDate: movieDetails.release_date,
+			releaseYear: changeDateFormat(movieDetails.release_date),
+			rating: changeVoteFormat(movieDetails.vote_average),
+			voteCount: movieDetails.vote_count,
+			description: movieDetails.overview,
+			production: getCountryName(movieDetails.production_countries),
+			productionShort: getShortCountryName(movieDetails.production_countries),
+			genres: getGenreName(movieDetails.genres),
+			backdrop: movieDetails.backdrop_path ? `${backdropURL}${movieDetails.backdrop_path}` : null,
+			poster: movieDetails.poster_path ? `${posterURL}${movieDetails.poster_path}` : null,
+		};
 };
 
 export const processSearchResults = (rawResults, rawGenreList, path) => {
@@ -77,7 +81,7 @@ export const processPeopleCredits = (moviesCredits, genresData) => {
 	const genres = genresData?.genres;
 	return moviesCredits?.map((movie) => ({
 		id: movie.id,
-		creditId:movie.credit_id,
+		creditId: movie.credit_id,
 		title: movie.title,
 		date: changeDateFormat(movie.release_date),
 		rating: changeVoteFormat(movie.vote_average),

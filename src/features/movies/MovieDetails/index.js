@@ -20,132 +20,129 @@ import {
 	useLocation,
 	useParams,
 } from "react-router-dom/cjs/react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import {
-	selectMovie,
-	selectMovieCast,
-	selectMovieCrew,
-	setMovieId,
-	selectMovieStatus,
-} from "./movieSlice";
 import queryParamName from "../../../queryParamName";
 import { SearchPage } from "../../search";
 import { useQueryParameter } from "../../../common/Navigation/SearchBar/useQueryParameters";
 import pageParamName from "../../../paginationParam";
+import { useQueries } from "@tanstack/react-query";
+import { fetchMovieCredits, fetchMovieDetails } from "./fetchMovieDetails";
+import { processMovieDetailsData } from "../../../API/processAPIData";
 
 export const MovieDetails = () => {
-	const params = useParams();
-	const dispatch = useDispatch();
 	const location = useLocation();
 	const history = useHistory();
 
+	const params = useParams();
+	const movieId = params.id;
 	const query = useQueryParameter(queryParamName);
 
 	useEffect(() => {
 		const searchParams = new URLSearchParams(location.search);
 
-		dispatch(setMovieId(params.id));
-
 		if (!query) {
 			searchParams.delete(pageParamName);
 			history.replace(`${location.pathname}?${searchParams.toString()}`);
 		}
-	}, [params.id, query, dispatch, history, location.pathname, location.search]);
+	}, [query, history, location.pathname, location.search]);
 
-	const movie = useSelector(selectMovie);
-	const cast = useSelector(selectMovieCast);
-	const crew = useSelector(selectMovieCrew);
-	const status = useSelector(selectMovieStatus);
+	const [movieDetails, movieCredits] = useQueries({
+		queries: [
+			{
+				queryKey: ["movieDetails", movieId],
+				queryFn: fetchMovieDetails,
+			},
+			{
+				queryKey: ["movieCredits", movieId],
+				queryFn: fetchMovieCredits,
+			},
+		],
+	});
 
-	if (query) {
-		return <SearchPage />;
-	}
+	const { isLoading: detailsLoading, error: detailsError, data: detailsData } = movieDetails;
+	const { isLoading: creditsLoading, error: creditsError, data: creditsData } = movieCredits;
 
-	switch (status) {
-		case "loading":
-			return <Loading />;
-		case "error":
-			return <Error />;
-		default:
-			return (
-				<>
-					{movie.backdrop ? (
-						<Header>
-							<BackgroundImage poster={movie.backdrop}>
-								<Vignette />
-								<TitleContainer>
-									<Title>{movie.title}</Title>
-									<Rating
-										isOnMoviePhoto
-										ratingValue={movie.rating}
-										voteAmount={movie.voteCount}
-									/>
-								</TitleContainer>
-							</BackgroundImage>
-						</Header>
-					) : (
-						""
-					)}
-					<Main>
-						<Section>
-							<MovieDetailsTile
-								poster={movie.poster}
+	const movie = processMovieDetailsData(detailsData);
+	const cast = creditsData?.cast;
+	const crew = creditsData?.crew;
+
+	if (query) { return <SearchPage />; }
+	if (detailsLoading && creditsLoading) return <Loading />;
+	if (detailsError && creditsError) return <Error />
+
+	return (
+		<>
+			{movie.backdrop ? (
+				<Header>
+					<BackgroundImage poster={movie.backdrop}>
+						<Vignette />
+						<TitleContainer>
+							<Title>{movie.title}</Title>
+							<Rating
+								isOnMoviePhoto
 								ratingValue={movie.rating}
 								voteAmount={movie.voteCount}
-								title={movie.title}
-								year={movie?.releaseYear  || "Unknown"}
-								production={movie?.production  || "Unknown"}
-								productionShort={movie?.productionShort  || "Unknown"}
-								date={
-									movie.releaseDate
-										? new Date(movie.releaseDate).toLocaleDateString()
-										: "Unknown"
-								}
-								tags={movie.genres}
-								description={movie?.description  || "No description available."}
 							/>
-						</Section>
-						{cast && cast.length > 0 && (
-							<Section>
-								<SectionTitle>Cast ({cast.length})</SectionTitle>
-								<List>
-									{cast.map(
-										({ cast_id, id, name, character, profile_path }) => (
-											<ListItem key={cast_id}>
-												<StyledLink to={toPeopleDetails({ id: id })}>
-													<PeopleTile
-														profilePath={profile_path}
-														name={name}
-														character={character}
-													/>
-												</StyledLink>
-											</ListItem>
-										)
-									)}
-								</List>
-							</Section>
+						</TitleContainer>
+					</BackgroundImage>
+				</Header>
+			) : (
+				""
+			)}
+			<Main>
+				<Section>
+					<MovieDetailsTile
+						poster={movie.poster}
+						ratingValue={movie.rating}
+						voteAmount={movie.voteCount}
+						title={movie.title}
+						year={movie?.releaseYear || "Unknown"}
+						production={movie?.production || "Unknown"}
+						productionShort={movie?.productionShort || "Unknown"}
+						date={
+							movie.releaseDate
+								? new Date(movie.releaseDate).toLocaleDateString()
+								: "Unknown"
+						}
+						tags={movie.genres}
+						description={movie?.description || "No description available."}
+					/>
+				</Section>
+				<Section>
+					<SectionTitle>Cast ({cast?.length})</SectionTitle>
+					<List>
+						{cast?.map(
+							({ cast_id, id, name, character, profile_path }) => (
+								<ListItem key={cast_id}>
+									<StyledLink to={toPeopleDetails({ id: id })}>
+										<PeopleTile
+											profilePath={profile_path}
+											name={name}
+											character={character}
+										/>
+									</StyledLink>
+								</ListItem>
+							)
 						)}
-						{crew && crew.length > 0 && (
-							<Section>
-								<SectionTitle>Crew ({crew.length})</SectionTitle>
-								<List>
-									{crew.map(({ credit_id, id, name, profile_path, job }) => (
-										<ListItem key={credit_id}>
-											<StyledLink to={toPeopleDetails({ id: id })}>
-												<PeopleTile
-													profilePath={profile_path}
-													name={name}
-													role={job}
-												/>
-											</StyledLink>
-										</ListItem>
-									))}
-								</List>
-							</Section>
-						)}
-					</Main>
-				</>
-			);
-	}
+					</List>
+				</Section>
+				<Section>
+					<SectionTitle>Crew ({crew?.length})</SectionTitle>
+					<List>
+						{crew?.map(({ credit_id, id, name, profile_path, job }) => (
+							<ListItem key={credit_id}>
+								<StyledLink to={toPeopleDetails({ id: id })}>
+									<PeopleTile
+										profilePath={profile_path}
+										name={name}
+										role={job}
+									/>
+								</StyledLink>
+							</ListItem>
+						))}
+					</List>
+				</Section>
+			</Main >
+		</>
+	);
 };
