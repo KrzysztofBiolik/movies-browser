@@ -4,7 +4,7 @@ import { backdropURL, posterURL } from "./APIdata";
 
 const nameGenres = (genreIds, genres) => {
 	return (genreIds || []).map(
-		(id) => genres.find((genre) => genre.id === id).name
+		(id) => genres?.find((genre) => genre.id === id).name
 	);
 };
 
@@ -73,10 +73,9 @@ export const processSearchResults = (rawResults, rawGenreList, path) => {
 	}
 };
 
-export const processPeopleCastMoviesData = (castMovies, genreList) => {
-	const genres = genreList.genres;
-
-	return castMovies.map((movie) => ({
+export const processPeopleCredits = (moviesCredits, genresData) => {
+	const genres = genresData?.genres;
+	return moviesCredits?.map((movie) => ({
 		id: movie.id,
 		creditId:movie.credit_id,
 		title: movie.title,
@@ -89,18 +88,3 @@ export const processPeopleCastMoviesData = (castMovies, genreList) => {
 	}));
 };
 
-export const processPeopleCrewMoviesData = (crewMovies, genreList) => {
-	const genres = genreList.genres;
-
-	return crewMovies.map((movie) => ({
-		id: movie.id,
-		creditId:movie.credit_id,
-		title: movie.title,
-		date: changeDateFormat(movie.release_date),
-		rating: changeVoteFormat(movie.vote_average),
-		vote_count: movie.vote_count,
-		release_date: movie.release_date,
-		namedGenres: nameGenres(movie.genre_ids, genres),
-		poster: movie.poster_path ? `${posterURL}${movie.poster_path}` : null,
-	}));
-};
