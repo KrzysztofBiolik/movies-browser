@@ -4,7 +4,6 @@ import rootSaga from "./rootSaga";
 import movieListReducer from "../features/movies/MovieList/movieListSlice";
 import movieReducer from "../features/movies/MovieDetails/movieSlice";
 import searchReducer from "../common/Navigation/SearchBar/searchSlice";
-import peopleReducer from "../features/people/PeopleDetails/peopleSlice";
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -12,7 +11,6 @@ const store = configureStore({
     reducer: {
         movieList: movieListReducer,
         movie: movieReducer,
-        people: peopleReducer,
         search: searchReducer,
     },
 	middleware: (getDefaultMiddleware) =>
