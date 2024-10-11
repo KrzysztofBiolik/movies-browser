@@ -1,12 +1,3 @@
-import { useSelector } from "react-redux";
-import {
-	selectInputValue,
-	selectSearchData,
-	selectSearchPath,
-	selectSearchStatus,
-	selectSearchTotalResults,
-	selectTotalPages,
-} from "../../common/Navigation/SearchBar/searchSlice";
 import { SearchMovieList } from "./searchMovieListPage";
 import { Loading } from "../../common/Loading";
 import { NoResults } from "../../common/NoResults";
@@ -16,52 +7,63 @@ import moviesPathName from "../../moviesPathName";
 import peoplePathName from "../../peoplePathName";
 import { Section, SectionTitle } from "../../common/Section";
 import { StyledMain } from "../../common/Main/styled";
+import { useQueryParameter } from "../../common/Navigation/SearchBar/useQueryParameters";
+import queryParamName from "../../queryParamName";
+import { useQuery } from "@tanstack/react-query";
+import paginationParam from "../../paginationParam";
+import { fetchSearch } from "./fetchSearchData";
+import { useLocation } from "react-router-dom";
+import { processSearchResults } from "../../API/processAPIData";
+import { useGenres } from "../../common/Genres";
 
 export const SearchPage = () => {
-	const status = useSelector(selectSearchStatus);
-	const path = useSelector(selectSearchPath);
-	const searchQuery = useSelector(selectInputValue);
-	const searchResults = useSelector(selectSearchData);
-	const searchTotalResults = useSelector(selectSearchTotalResults);
-	const totalPages = useSelector(selectTotalPages);
+	const location = useLocation();
 
-	if (status !== "loading" && !searchResults.length) {
-		return <NoResults searchQuery={searchQuery} />;
+	const pageParam = useQueryParameter(paginationParam)
+	const query = useQueryParameter(queryParamName);
+	const path = location.pathname.startsWith("/movies") ? "movie" : "person";
+
+	const { isPending, isError, data } = useQuery({
+		queryKey: ["search", { path, query, page: pageParam }],
+		queryFn: fetchSearch,
+	});
+
+	const genresData = useGenres();
+
+	const searchResults = processSearchResults(data, genresData, path);
+	const totalPages = data?.total_pages;
+	const searchTotalResults = data?.total_results;
+
+	if (!isPending && !searchResults.length) {
+		return <NoResults searchQuery={query} />;
 	}
-
-	switch (status) {
-		case "loading":
-			return (
-				<StyledMain>
-					<Section>
-						<SectionTitle>Search results for {`"${searchQuery}"`}</SectionTitle>
-						<Loading />
-					</Section>
-				</StyledMain>
-			);
-
-		case "error":
-			return <Error />;
-		default:
-			if (path === moviesPathName) {
-				return (
-					<SearchMovieList
-						searchQuery={searchQuery}
-						searchResults={searchResults}
-						searchTotalResults={searchTotalResults}
-						totalPages={totalPages}
-					/>
-				);
-			}
-			if (path === peoplePathName) {
-				return (
-					<SearchPeopleList
-						searchQuery={searchQuery}
-						searchResults={searchResults}
-						searchTotalResults={searchTotalResults}
-						totalPages={totalPages}
-					/>
-				);
-			}
+	if (isPending) return (
+		<StyledMain>
+			<Section>
+				<SectionTitle>Search results for {`"${query}"`}</SectionTitle>
+				<Loading />
+			</Section>
+		</StyledMain>
+	);
+	if (isError) return <Error />
+	if (path === moviesPathName) {
+		return (
+			<SearchMovieList
+				searchQuery={query}
+				searchResults={searchResults}
+				searchTotalResults={searchTotalResults}
+				totalPages={totalPages}
+			/>
+		);
+	}
+	if (path === peoplePathName) {
+		return (
+			<SearchPeopleList
+				searchQuery={query}
+				searchResults={searchResults}
+				searchTotalResults={searchTotalResults}
+				totalPages={totalPages}
+			/>
+		)
 	}
 };
