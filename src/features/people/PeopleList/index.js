@@ -8,11 +8,9 @@ import { List, ListItem, StyledLink } from "./styled";
 import { Loading } from "../../../common/Loading";
 import { Error } from "../../../common/Error";
 import pageParamName from "../../../paginationParam";
-import { useUpdatePageFromURL } from "../../../common/Pagination/useURLParams";
 import { useHistory, useLocation } from "react-router-dom/cjs/react-router-dom";
 import { SearchPage } from "../../search";
 import queryParamName from "../../../queryParamName";
-import peoplePathName from "../../../peoplePathName";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPeopleList } from "./fetchPeopleList";
 

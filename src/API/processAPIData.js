@@ -1,6 +1,5 @@
-import { mockComponent } from "react-dom/test-utils";
-import moviesPathName from "../moviesPathName";
-import peoplePathName from "../peoplePathName";
+import moviesPathName from "../moviePathName";
+import peoplePathName from "../personPathName";
 import { backdropURL, posterURL } from "./APIdata";
 
 const nameGenres = (genreIds, genres) => {
@@ -47,8 +46,6 @@ export const processMovieListData = (movieListData, genreList) => {
 };
 
 export const processMovieDetailsData = (movieDetails) => {
-	console.log(movieDetails)
-
 	if (movieDetails)
 		return {
 			id: movieDetails.id,
@@ -71,7 +68,7 @@ export const processSearchResults = (rawResults, rawGenreList, path) => {
 		case moviesPathName:
 			return processMovieListData(rawResults, rawGenreList);
 		case peoplePathName:
-			return rawResults.results;
+			return rawResults?.results;
 		default:
 			return {};
 	}
