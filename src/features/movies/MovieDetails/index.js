@@ -72,7 +72,7 @@ export const MovieDetails = () => {
 
 	return (
 		<>
-			{movie.backdrop ? (
+			{movie?.backdrop ? (
 				<Header>
 					<BackgroundImage poster={movie.backdrop}>
 						<Vignette />
@@ -86,28 +86,28 @@ export const MovieDetails = () => {
 						</TitleContainer>
 					</BackgroundImage>
 				</Header>
-			) : (
-				""
-			)}
+			) : null}
 			<Main>
-				<Section>
-					<MovieDetailsTile
-						poster={movie.poster}
-						ratingValue={movie.rating}
-						voteAmount={movie.voteCount}
-						title={movie.title}
-						year={movie?.releaseYear || "Unknown"}
-						production={movie?.production || "Unknown"}
-						productionShort={movie?.productionShort || "Unknown"}
-						date={
-							movie.releaseDate
-								? new Date(movie.releaseDate).toLocaleDateString()
-								: "Unknown"
-						}
-						tags={movie.genres}
-						description={movie?.description || "No description available."}
-					/>
-				</Section>
+				{movie ? (
+					<Section>
+						<MovieDetailsTile
+							poster={movie.poster}
+							ratingValue={movie.rating}
+							voteAmount={movie.voteCount}
+							title={movie.title}
+							year={movie?.releaseYear || "Unknown"}
+							production={movie?.production || "Unknown"}
+							productionShort={movie?.productionShort || "Unknown"}
+							date={
+								movie.releaseDate
+									? new Date(movie.releaseDate).toLocaleDateString()
+									: "Unknown"
+							}
+							tags={movie.genres}
+							description={movie?.description || "No description available."}
+						/>
+					</Section>
+				): null}
 				<Section>
 					<SectionTitle>Cast ({cast?.length})</SectionTitle>
 					<List>
